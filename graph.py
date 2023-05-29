@@ -4,14 +4,11 @@ import re
 import nltk
 from nltk.corpus import stopwords
 import math
-from bert_embeddings import *
 
 """
     Assumptions:
     - the entire graph can fit in memory
-    - there are not 2 tables with the same name and if 
     - all the columns of the dataframe have a string as identifier
-    - all the columns inside the same dataframe have different names
     - the graph is undirected and unweighted
 """
 def isNaN(num):
@@ -93,8 +90,7 @@ class Graph:
             self.token_to_index = {}
             self.preprocess_string_token = String_token_preprocessor()
             self.task = task
-            if self.task == 'table-matching':
-                self.generate_embedding = Bert_Embedding_Generator()
+
     def get_number_of_nodes(self):
         return len(self.index_to_token)
     def __str__(self):
@@ -137,7 +133,7 @@ class Graph:
                   number_preprocess_operations = ['cast_to_float', 'discretize_strict']):
         return
         
-    def __add_table_ER(self, df, table_name='', config='embdi',add_table_node=True, link_tuple_token=True, link_token_attribute=True, link_tuple_attribute=False, link_table_tuple=True, link_table_attribute=True
+    def __add_table_ER(self, df, table_name='', config='embdi',add_table_node=False, link_tuple_token=True, link_token_attribute=True, link_tuple_attribute=False, link_table_tuple=True, link_table_attribute=True
                   , link_table_token=False, attribute_preprocess_operations = ['lowercase', 'drop_numbers_from_strings'], string_preprocess_operations = ['lowercase', 'split', 'remove_stop_words'],
                   number_preprocess_operations = ['cast_to_float', 'discretize_strict']):
         """
@@ -145,6 +141,7 @@ class Graph:
             Params:
             -df: the dataframe to process
             -table_name: the name of the dataframe, it will be used during the node generation
+            -config: the default behavior is to replicate the edges structure of embedi, you can set it to None to generate a custom structure
             -add_table_node: if true tells the function to add a node representing the table
             -link_tuple_token: if true tuples and tokens will be linked by edges
             -link_token_attribute: if true tokens and attributes will be linked by edges
@@ -152,9 +149,12 @@ class Graph:
             -link_table_tuple: if true tables and tuples will be linked by edges
             -link_table_attribute: if true tables and attributes will be linked by edges
             -link_table_token: if true table and tokens will be linked by edges
+            -attribute_preprocess_operations: contains a list of strings that identifies all the preprocessing operations to apply to the values associated to column names
+            -string_preproccess_operations: contains a list of strings that identifies all the preprocessing operations to apply to the values representing textual data
+            -number_preprocess_operations: contains a list of strings that identifies all the preprocessing operations to apply to the numerical data
         """
         if config == 'embdi':
-            add_table_node = (self.task=='table_matching')
+            add_table_node = False
             link_tuple_token = True
             link_token_attribute = True
             link_tuple_attribute = False

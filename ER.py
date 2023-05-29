@@ -4,7 +4,7 @@ from visualization import *
 from research_similar import *
 import sys
 
-def get_tuple_indexes_by_table(token_to_index):
+def get_tuple_indexes_by_table(token_to_index, add_also_indexes=False):
     out = {}
     for k in token_to_index.keys():
         split_str = k.split('_')
@@ -153,7 +153,8 @@ def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n
 
                 g.add_table(dfA,'A', add_table_node=False, link_tuple_token=True, link_token_attribute=True, link_tuple_attribute=False, link_table_tuple=False, link_table_attribute=False,link_table_token=False)
                 g.add_table(dfB,'B', add_table_node=False, link_tuple_token=True, link_token_attribute=True, link_tuple_attribute=False, link_table_tuple=False, link_table_attribute=False,link_table_token=False)
-                g.save(directory_name=file_directory)
+                if file_directory != None:
+                    g.save(directory_name=file_directory)
             else:
                 g = Graph(directory_name=file_directory)
                 print('Graph loaded')
@@ -161,7 +162,8 @@ def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n
         if not(load_embedding_file):
             e = Embeddings(g)
             e.generateNode2vecEmbeddings(n_epochs=n_epochs, p=p, q=q, walk_length=walk_length,embedding_dim=embedding_size, context_size=context_size)
-            e.save_embedding_tensor(directory_name=file_directory)
+            if file_directory != None:
+                e.save_embedding_tensor(directory_name=file_directory)
         else:
             e = Embeddings(directory_name=file_directory)
             print('Embeddings loaded')
@@ -179,15 +181,18 @@ def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n
             n_top_A = find_n_best(e, tables_to_tuples['A'], tables_to_tuples['B'], n_similar)
             n_top_B = find_n_best(e, tables_to_tuples['B'], tables_to_tuples['A'], n_similar)
         index_to_token = e.index_to_token
-        save_n_top(file_directory, n_top_A, n_top_B, e.index_to_token)
-
-    n_top_A, n_top_B, index_to_token = load_n_top(file_directory)
+        if file_directory != None:
+            save_n_top(file_directory, n_top_A, n_top_B, e.index_to_token)
+    if file_directory != None:
+        n_top_A, n_top_B, index_to_token = load_n_top(file_directory)
     
     matches = find_matching_couples(n_top_A, n_top_B, index_to_token, n_top,use_faiss)
-    
-    save_matches(matches, file_directory)
-
-    return set(matches[1])
+    if file_directory != None:
+        save_matches(matches, file_directory)
+    try:
+        return set(matches[1]), dfA.shape[0]*dfB.shape[0]
+    except:
+        return set(matches[1])
 
 def measure_performances(matches, ground_truth):
     found = 0
@@ -203,6 +208,7 @@ def measure_performances(matches, ground_truth):
     except:
         f_measure = -1
         print('precision or recall is 0')
+    print(f'Number of pairs post blocking: {len(matches)}')
     print(f'Precision: {precision} Recall: {recall} F-measure: {f_measure}')
     return precision, recall, f_measure
 
@@ -220,8 +226,9 @@ def find_top_n_faiss(table_to_tuples_A, table_to_tuples_B, embeddings, n_similar
 
 
 def run_test(dfpathA, dfpathB, ground_truth_path, file_directory, p=20,q=1, embedding_size=128, walk_length=10,n_similar=10, n_top=10, n_epochs=100, load_embedding_file=False, load_graph=False, load_n_best=False):
-    matches = entity_resolution(dfpathA, dfpathB, p=p, q=q, embedding_size=embedding_size, walk_length=walk_length, file_directory=file_directory, n_epochs=n_epochs,n_similar=n_similar, n_top=n_top, load_graph=load_graph, load_embedding_file=load_embedding_file, load_n_best=load_n_best)
+    matches, n_pairs_before = entity_resolution(dfpathA, dfpathB, p=p, q=q, embedding_size=embedding_size, walk_length=walk_length, file_directory=file_directory, n_epochs=n_epochs,n_similar=n_similar, n_top=n_top, load_graph=load_graph, load_embedding_file=load_embedding_file, load_n_best=load_n_best)
     ground_truth = prepare_ground_truth_embdi(ground_truth_path)
+    print(f'Number of pairs pre blocking: {n_pairs_before}')
     return measure_performances(matches, ground_truth)
 
 
@@ -230,14 +237,14 @@ if __name__ == '__main__':
     try:
         task = sys.argv[1]
     except:
-        task = 'WA-train-test'
+        task = 'FZ-train-test'
 
     if task == 'FZ-train-test':
         start = time.time()
-        run_test(r"/home/francesco.pugnaloni/GeneralPurposeTableEmbedding/Tests/FZ/Datasets/fodors_zagats-tableA.csv",
-            r"/home/francesco.pugnaloni/GeneralPurposeTableEmbedding/Tests/FZ/Datasets/fodors_zagats-tableB.csv",
-            r"/home/francesco.pugnaloni/GeneralPurposeTableEmbedding/Tests/FZ/Datasets/matches-fodors_zagats.txt",
-            r"/home/francesco.pugnaloni/GeneralPurposeTableEmbedding/Tests/FZ/Files",
+        run_test(r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableA.csv",
+            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableB.csv",
+            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\matches-fodors_zagats.txt",
+            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Files",
             n_epochs=100,
             load_n_best=False,
             load_embedding_file=False,
