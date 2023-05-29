@@ -75,7 +75,7 @@ def load_n_top(directory_name):
         raise Exception('Embedding read operation failed')
     return n_top_A, n_top_B, index_to_token
 
-def find_matching_couples(n_top_A, n_top_B, index_to_token, n_top, faiss=True):
+def find_matching_couples(n_top_A, n_top_B, index_to_token, n_top, faiss=True, embdi_format=True):
     """
         Output format: ((index_A, index_B, pos_A_to_B, pos_B_to_A), (index_A, index_B))
     """
@@ -106,8 +106,12 @@ def find_matching_couples(n_top_A, n_top_B, index_to_token, n_top, faiss=True):
                         pos = j
                         break
                 if pos >= 0:
-                    matches.append((index_to_token[k].split('_')[2], index_to_token[A[i]].split('_')[2], i, pos))
-                    matches_no_pos.append((int(index_to_token[k].split('_')[2]), int(index_to_token[A[i]].split('_')[2])+len_A))
+                    if embdi_format:
+                        matches.append((index_to_token[k].split('_')[2], index_to_token[A[i]].split('_')[2], i, pos))
+                        matches_no_pos.append((int(index_to_token[k].split('_')[2]), int(index_to_token[A[i]].split('_')[2])+len_A))
+                    else:
+                        matches.append((index_to_token[k], index_to_token[A[i]]))
+                        matches_no_pos.append((index_to_token[k], index_to_token[A[i]]))
 
     return matches, matches_no_pos
 
