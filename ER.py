@@ -146,7 +146,7 @@ def prepare_ground_truth_embdi(file_path):
     return set(ground_truth)
 
 
-def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n_top=10, embedding_size=128, walk_length=10,context_size=10, return_n_pairs_before=False, use_faiss=True,file_directory=None, load_embedding_file=False, load_graph=False, load_n_best=False):
+def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n_top=10, embedding_size=128, walk_length=10,context_size=10, walks_per_node=20,return_n_pairs_before=False, use_faiss=True,file_directory=None, load_embedding_file=False, load_graph=False, load_n_best=False):
     if not(load_n_best):
         if not(load_embedding_file):
             if not(load_graph):
@@ -165,7 +165,7 @@ def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n
         print(f'Number of walks: {g.get_number_of_nodes()}')
         if not(load_embedding_file):
             e = Embeddings(g)
-            e.generateNode2vecEmbeddings(n_epochs=n_epochs, p=p, q=q, walk_length=walk_length,embedding_dim=embedding_size, context_size=context_size)
+            e.generateNode2vecEmbeddings(n_epochs=n_epochs, p=p, q=q, walks_per_node=walks_per_node, walk_length=walk_length,embedding_dim=embedding_size, context_size=context_size)
             if file_directory != None:
                 e.save_embedding_tensor(directory_name=file_directory)
         else:
