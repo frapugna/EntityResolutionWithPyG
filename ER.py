@@ -146,7 +146,7 @@ def prepare_ground_truth_embdi(file_path):
     return set(ground_truth)
 
 
-def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n_top=10, embedding_size=128, walk_length=10,context_size=10, use_faiss=True,file_directory=None, load_embedding_file=False, load_graph=False, load_n_best=False):
+def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n_top=10, embedding_size=128, walk_length=10,context_size=10, return_n_pairs_before=False, use_faiss=True,file_directory=None, load_embedding_file=False, load_graph=False, load_n_best=False):
     if not(load_n_best):
         if not(load_embedding_file):
             if not(load_graph):
@@ -193,12 +193,18 @@ def entity_resolution(dfpathA, dfpathB, p=20, q=1, n_epochs=100, n_similar=10, n
     matches = find_matching_couples(n_top_A, n_top_B, index_to_token, n_top,use_faiss)
     if file_directory != None:
         save_matches(matches, file_directory)
-    try:
-        return set(matches[1]), dfA.shape[0]*dfB.shape[0]
-    except:
-        return set(matches[1])
+    
+    if return_n_pairs_before:    
+        try:
+            return set(matches[1]), dfA.shape[0]*dfB.shape[0]
+        except:
+            dfA = pd.read_csv(dfpathA)
+            dfB = pd.read_csv(dfpathB)
+            return set(matches[1]), dfA.shape[0]*dfB.shape[0]
+        
+    return set(matches[1])
 
-def measure_performances(matches, ground_truth):
+def measure_performances(matches, ground_truth, number_of_pairs_before):
     found = 0
     for t in ground_truth:
         t_alt = (t[1], t[0])    #note: to be compliant to embdi labeling you have to subtract to t[1] the number of elements of the first table
@@ -211,10 +217,13 @@ def measure_performances(matches, ground_truth):
         f_measure = (2*(precision*recall))/(precision+recall)
     except:
         f_measure = -1
-        print('precision or recall is 0')
+        print('Pairs quality or pairs completeness is 0')
+    reduction_ratio= 1-(len(matches)/number_of_pairs_before)
+    print(f'Number of pairs pre blocking: {number_of_pairs_before}')
     print(f'Number of pairs post blocking: {len(matches)}')
-    print(f'Precision: {precision} Recall: {recall} F-measure: {f_measure}')
-    return precision, recall, f_measure
+    print(f'Reduction ratio: {reduction_ratio}')
+    print(f'Pairs completeness: {recall}')
+    #print(f'Precision: {precision} Recall: {recall} F-measure: {f_measure}')
 
 def find_top_n_faiss(table_to_tuples_A, table_to_tuples_B, embeddings, n_similar):
     embeddings = embeddings.detach().cpu().numpy()
@@ -230,10 +239,9 @@ def find_top_n_faiss(table_to_tuples_A, table_to_tuples_B, embeddings, n_similar
 
 
 def run_test(dfpathA, dfpathB, ground_truth_path, file_directory, p=20,q=1, embedding_size=128, walk_length=10,n_similar=10, n_top=10, n_epochs=100, load_embedding_file=False, load_graph=False, load_n_best=False):
-    matches, n_pairs_before = entity_resolution(dfpathA, dfpathB, p=p, q=q, embedding_size=embedding_size, walk_length=walk_length, file_directory=file_directory, n_epochs=n_epochs,n_similar=n_similar, n_top=n_top, load_graph=load_graph, load_embedding_file=load_embedding_file, load_n_best=load_n_best)
+    matches, n_pairs_before = entity_resolution(dfpathA, dfpathB, return_n_pairs_before=True,p=p, q=q, embedding_size=embedding_size, walk_length=walk_length, file_directory=file_directory, n_epochs=n_epochs,n_similar=n_similar, n_top=n_top, load_graph=load_graph, load_embedding_file=load_embedding_file, load_n_best=load_n_best)
     ground_truth = prepare_ground_truth_embdi(ground_truth_path)
-    print(f'Number of pairs pre blocking: {n_pairs_before}')
-    return measure_performances(matches, ground_truth)
+    measure_performances(matches, ground_truth, n_pairs_before)
 
 
 
@@ -241,7 +249,7 @@ if __name__ == '__main__':
     try:
         task = sys.argv[1]
     except:
-        task = 'FZ-train-test'
+        task = 'FZ-test'
 
     if task == 'FZ-train-test':
         start = time.time()
@@ -263,7 +271,24 @@ if __name__ == '__main__':
         
         end = time.time()
         print(f'Texec: {end-start}')
-
+    if task == 'FZ-test':
+        for i in range(1,11):
+            print(f'n_top: {i}')
+            run_test(r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableA.csv",
+                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableB.csv",
+                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\matches-fodors_zagats.txt",
+                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Files",
+                n_epochs=100,
+                load_n_best=True,
+                load_embedding_file=False,
+                load_graph=False,
+                n_similar=10,
+                n_top=i,
+                embedding_size=300,
+                walk_length=10,
+                p=10,
+                q=1
+                )
     if task == 'beer-train-test':
         start = time.time()
         run_test(r"/home/francesco.pugnaloni/GeneralPurposeTableEmbedding/Tests/Beer/Datasets/beer-tableA.csv",
