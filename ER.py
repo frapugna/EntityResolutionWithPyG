@@ -219,10 +219,13 @@ def measure_performances(matches, ground_truth, number_of_pairs_before):
         f_measure = -1
         print('Pairs quality or pairs completeness is 0')
     reduction_ratio= 1-(len(matches)/number_of_pairs_before)
+  
     print(f'Number of pairs pre blocking: {number_of_pairs_before}')
     print(f'Number of pairs post blocking: {len(matches)}')
-    print(f'Reduction ratio: {reduction_ratio}')
     print(f'Pairs completeness: {recall}')
+    print(f'Reduction ratio: {reduction_ratio}')
+
+    print('_________________________________________________________________________')
     #print(f'Precision: {precision} Recall: {recall} F-measure: {f_measure}')
 
 def find_top_n_faiss(table_to_tuples_A, table_to_tuples_B, embeddings, n_similar):
@@ -253,10 +256,10 @@ if __name__ == '__main__':
 
     if task == 'FZ-train-test':
         start = time.time()
-        run_test(r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableA.csv",
-            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableB.csv",
-            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\matches-fodors_zagats.txt",
-            r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Files",
+        run_test(r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/fodors_zagats-tableA.csv",
+            r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/fodors_zagats-tableB.csv",
+            r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/matches-fodors_zagats.txt",
+            r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Files",
             n_epochs=100,
             load_n_best=False,
             load_embedding_file=False,
@@ -274,10 +277,10 @@ if __name__ == '__main__':
     if task == 'FZ-test':
         for i in range(1,11):
             print(f'n_top: {i}')
-            run_test(r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableA.csv",
-                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\fodors_zagats-tableB.csv",
-                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Datasets\matches-fodors_zagats.txt",
-                r"C:\Users\frapu\Desktop\ProgettoBeneventano\Tests\FZ\Files",
+            run_test(r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/fodors_zagats-tableA.csv",
+                r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/fodors_zagats-tableB.csv",
+                r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Datasets/matches-fodors_zagats.txt",
+                r"/home/francesco.pugnaloni/EntityResolutionWithPyG/Tests/FZ/Files",
                 n_epochs=100,
                 load_n_best=True,
                 load_embedding_file=False,
