@@ -1,6 +1,5 @@
 # EntityResolutionWithPyG
-EmbDI is a framework that uses a graph as an inter-
-mediate representation for relational tables to generate embeddings of schema
+EmbDI is a framework that uses a graph as an intermediate representation for relational tables to generate embeddings of schema
 elements such as tuples, tokens, and columns. It was proved this
 approach causes a lower loss of information if compared to frameworks that
 consider tuples as sentences.
